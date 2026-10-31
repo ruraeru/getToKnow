@@ -76,6 +76,24 @@ Next.js 프론트엔드 + Spring Boot 백엔드 + MySQL을 docker compose 하나
     gettoknow-api.ruraeru.xyz { reverse_proxy 172.30.1.11:8081 }
     ```
     수정 후 `caddy validate --config /etc/caddy/Caddyfile` → `systemctl reload caddy` (reload는 무중단, 문법 오류면 기존 설정 유지).
+- frontend 이미지는 `ENV HOSTNAME=0.0.0.0` 필수 — Docker가 HOSTNAME을 컨테이너 id로 넣고 Next standalone `server.js`가 거기에 bind하기 때문.
+
+### 배포 순서 (Docker VM 172.30.1.11)
+코드는 GitHub `ruraeru/getToKnow`(`main`)에서 받는다. 이 개발 CT에서는 Docker를 못 쓰므로 빌드·실행은 VM에서 한다.
+
+1. VM에서 클론: `git clone https://github.com/ruraeru/getToKnow.git && cd getToKnow` (비공개 레포면 VM SSH 키를 GitHub에 등록 후 `git@github.com:ruraeru/getToKnow.git`).
+2. `.env` 작성: `cp .env.example .env` 후 `MYSQL_PASSWORD`/`MYSQL_ROOT_PASSWORD` 변경, `JWT_SECRET`에 `openssl rand -base64 48` 값. 도메인·포트는 기본값 그대로.
+3. 빈 포트 확인: `docker ps --format '{{.Names}}\t{{.Ports}}'` — 3001/8081이 비어 있어야 함.
+4. `docker compose up -d --build` — 첫 빌드는 Gradle/npm 의존성 받느라 수 분, 인터넷과 RAM 2~3GB 필요.
+5. VM에서 확인:
+   - `docker compose ps` (db healthy), `docker compose logs -f backend` ("Started BackendApplication")
+   - `curl -s -o /dev/null -w '%{http_code}\n' localhost:8081/api/share/x` → 404면 정상
+   - `curl -s -o /dev/null -w '%{http_code}\n' localhost:3001/login` → 200
+6. DNS: `gettoknow`, `gettoknow-api` 레코드를 기존 `app` 레코드와 같은 대상으로 추가 (와일드카드 있으면 생략).
+7. 프록시 CT Caddyfile에 위 두 블록 추가 → validate → reload.
+8. 폰으로 https://gettoknow.ruraeru.xyz 에서 가입 → 답변 → 잠금 → 공유 링크 열람 확인.
+
+업데이트: `cd getToKnow && git pull && docker compose up -d --build`. DB는 볼륨 `gettoknow_db-data`에 있어 유지된다. **`docker compose down -v`는 볼륨까지 지워 데이터가 전부 사라진다.**
 
 # 개발 / 테스트
 - 백엔드 테스트: `cd backend && ./gradlew test` — H2(MySQL 모드)로 가입→답변→잠금→공유 열람 전체 흐름을 검증 (`BackendApplicationTests`).
@@ -89,7 +107,7 @@ Next.js 프론트엔드 + Spring Boot 백엔드 + MySQL을 docker compose 하나
 - [x] 프론트: 로그인/가입, 답변 작성, 잠금 설정, 링크 공유, 공개 열람 페이지
 - [x] Dockerfile(백/프론트), compose.yaml, .env.example
 - [x] 개발 CT에서 로컬 실행 확인 (H2)
-- [ ] Docker VM에서 실제 compose 빌드·MySQL 연동 확인 — 아직 안 함
+- [ ] Docker VM에서 실제 compose 빌드·MySQL 연동 확인 — 아직 안 함 (절차는 "배포 순서" 참고)
 - [x] UI 디자인 파스텔 톤으로 개편 (아래 변경 이력 참고)
 - [ ] 실제 브라우저로 화면 확인 (이 CT에는 Chrome이 없어 `inspect.mjs` 미실행)
 
