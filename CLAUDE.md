@@ -34,7 +34,7 @@ Next.js 프론트엔드 + Spring Boot 백엔드 + MySQL을 docker compose 하나
 - `Repositories.java` — 리포지토리 인터페이스 모음. `UserRepository.current(jwt)`로 현재 사용자 조회.
 - `BackendApplication.QUESTIONS` — 기본 질문 목록. 시작 시 없는 질문만 추가한다(기존 것은 건드리지 않음).
 - 스키마는 `ddl-auto=update`로 관리 (마이그레이션 도구 없음).
-- 에러는 `ResponseStatusException` + 한국어 메시지, `server.error.include-message=always`로 프론트에 `message` 전달.
+- 에러는 `ResponseStatusException` + 한국어 메시지, `spring.web.error.include-message=always`로 (Boot 4 이름. 옛 `server.error.*`는 무시됨) 프론트에 `message` 전달.
 
 | 메서드 | 경로 | 인증 | 설명 |
 |---|---|---|---|
@@ -107,7 +107,7 @@ Next.js 프론트엔드 + Spring Boot 백엔드 + MySQL을 docker compose 하나
 - [x] 프론트: 로그인/가입, 답변 작성, 잠금 설정, 링크 공유, 공개 열람 페이지
 - [x] Dockerfile(백/프론트), compose.yaml, .env.example
 - [x] 개발 CT에서 로컬 실행 확인 (H2)
-- [ ] Docker VM에서 실제 compose 빌드·MySQL 연동 확인 — 아직 안 함 (절차는 "배포 순서" 참고)
+- [x] Docker VM 배포 (2026-10-31) — gettoknow(-api).ruraeru.xyz HTTPS·CORS·번들 API 주소 확인. 가입부터 공유까지 실제 흐름은 사용자가 폰으로 확인할 것
 - [x] UI 디자인 파스텔 톤으로 개편 (아래 변경 이력 참고)
 - [ ] 실제 브라우저로 화면 확인 (이 CT에는 Chrome이 없어 `inspect.mjs` 미실행)
 
@@ -126,6 +126,7 @@ Next.js 프론트엔드 + Spring Boot 백엔드 + MySQL을 docker compose 하나
   - MySQL은 호스트 포트를 안 열어서 기존 3306과 충돌 없음.
   - 프록시 CT Caddyfile에 이 서비스용 블록을 기존 블록 옆에 추가하는 방식 (위 "배포" 참고). 아직 실제 VM 배포·Caddy 반영은 안 함.
   - 도메인 변경: 기존 서비스가 app/api.ruraeru.xyz를 쓰고 있어서 getToKnow는 `gettoknow.ruraeru.xyz`(프론트) / `gettoknow-api.ruraeru.xyz`(API)로. compose 기본값·`.env.example`의 `APP_URL`/`API_URL` 반영. 두 서브도메인 DNS 레코드는 아직 추가 안 함.
+- 2026-10-31: VM 배포 후 점검에서 에러 응답에 `message`가 빠진 것을 발견 (처음부터 있던 버그 — 프론트가 "틀렸어요" 대신 "요청에 실패했어요"만 보여줌). Boot 4는 `server.error.include-message`를 무시하고 `spring.web.error.include-message`를 읽음. main/test 두 `application.properties` 모두 수정 (test 쪽이 bootTestRun에서 main을 가림). MockMvc는 `/error`를 안 거쳐 테스트로는 못 잡음 — curl로 확인.
 
 # 알려진 제약 / TODO
 - 잠금 정답 시도 횟수 제한 없음 — 링크를 가진 사람은 짧은 정답을 대입해볼 수 있음 (`ShareController`의 `shortcut:` 주석).
