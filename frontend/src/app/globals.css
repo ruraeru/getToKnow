@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Design tokens: pastel-consumer app style (.taste-skill/direction.json).
+   Each person has one hue: "me" (pink) = the owner of the answers, "you" (sky) = whoever opens the link.
+   Pastel tile + the dark of the same hue as its text. */
+@theme {
+  --color-ground: #f4f5f7;
+  --color-field: #f4f5f7;
+  --color-ink: #1b1d1f;
+  --color-muted: #5c6064;
+  --color-me: #c92a62;
+  --color-me-soft: #ffe3ec;
+  --color-me-ink: #7d1a3f;
+  --color-you: #1d5fd6;
+  --color-you-soft: #dcf1ff;
+  --color-you-ink: #0a3a80;
+  --color-mint-soft: #dcfae5;
+  --color-mint-ink: #0b4a22;
+  --color-peach-soft: #ffead6;
+  --color-peach-ink: #7a3a0c;
+  --color-lemon-soft: #fff4c2;
+  --color-lemon-ink: #5c4500;
+  --color-negative: #c41c29;
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, -apple-system, "Apple SD Gothic Neo", sans-serif;
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  word-break: keep-all;
+}
+
+@layer components {
+  .input {
+    @apply w-full rounded-2xl border-2 border-transparent bg-field px-4 py-3 outline-none transition-colors placeholder:text-muted/60 focus:border-me focus:bg-white;
+  }
+  .btn {
+    @apply h-13 w-full rounded-full bg-me text-[17px] font-bold text-white transition-[transform,opacity] active:scale-[0.98] disabled:opacity-50;
+  }
+  .btn-sm {
+    @apply h-10 rounded-full bg-me px-5 text-sm font-bold text-white transition-transform active:scale-[0.96];
+  }
+  .label {
+    @apply mb-2 block text-sm font-semibold;
+  }
+  .card {
+    @apply rounded-[28px] bg-white p-6;
+  }
+  .tile {
+    @apply rounded-[28px] p-6;
+  }
+  .link {
+    @apply text-sm font-medium text-muted underline-offset-4 hover:text-ink hover:underline;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ink;
+  }
+}
+
+/* 16px+ stops iOS Safari from zooming into focused inputs */
+input,
+textarea {
+  font-size: 16px;
+}

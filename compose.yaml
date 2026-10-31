@@ -1,0 +1,52 @@
+# Fixed project name: container/network/volume names stay "gettoknow_*" whatever the folder is called
+name: gettoknow
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: gettoknow
+      MYSQL_USER: gettoknow
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
+    volumes:
+      - db-data:/var/lib/mysql
+    networks: [db]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_NAME: gettoknow
+      DB_USER: gettoknow
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      CORS_ORIGIN: ${APP_URL:-https://gettoknow.ruraeru.xyz}
+    ports: ["${BACKEND_PORT:-8081}:8080"]
+    networks: [db, web]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${API_URL:-https://gettoknow-api.ruraeru.xyz}
+    restart: unless-stopped
+    ports: ["${FRONTEND_PORT:-3001}:3000"]
+    networks: [web]
+
+networks:
+  db:
+    internal: true
+  web:
+
+volumes:
+  db-data:
