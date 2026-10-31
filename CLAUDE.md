@@ -126,7 +126,7 @@ Next.js 프론트엔드 + Spring Boot 백엔드 + MySQL을 docker compose 하나
   - MySQL은 호스트 포트를 안 열어서 기존 3306과 충돌 없음.
   - 프록시 CT Caddyfile에 이 서비스용 블록을 기존 블록 옆에 추가하는 방식 (위 "배포" 참고). 아직 실제 VM 배포·Caddy 반영은 안 함.
   - 도메인 변경: 기존 서비스가 app/api.ruraeru.xyz를 쓰고 있어서 getToKnow는 `gettoknow.ruraeru.xyz`(프론트) / `gettoknow-api.ruraeru.xyz`(API)로. compose 기본값·`.env.example`의 `APP_URL`/`API_URL` 반영. 두 서브도메인 DNS 레코드는 아직 추가 안 함.
-- 2026-10-31: VM 배포 후 점검에서 에러 응답에 `message`가 빠진 것을 발견 (처음부터 있던 버그 — 프론트가 "틀렸어요" 대신 "요청에 실패했어요"만 보여줌). Boot 4는 `server.error.include-message`를 무시하고 `spring.web.error.include-message`를 읽음. main/test 두 `application.properties` 모두 수정 (test 쪽이 bootTestRun에서 main을 가림). MockMvc는 `/error`를 안 거쳐 테스트로는 못 잡음 — curl로 확인.
+- 2026-10-31: VM 배포 후 점검에서 에러 응답에 `message`가 빠진 것을 발견 (처음부터 있던 버그 — 프론트가 "틀렸어요" 대신 "요청에 실패했어요"만 보여줌). Boot 4는 `server.error.include-message`를 무시하고 `spring.web.error.include-message`를 읽음. main/test 두 `application.properties` 모두 수정 (test 쪽이 bootTestRun에서 main을 가림). MockMvc는 `/error`를 안 거쳐 테스트로는 못 잡음 — curl로 확인. VM 재배포 후 운영(gettoknow-api.ruraeru.xyz)에서 404/401 응답에 한국어 `message` 오는 것 확인. 잠금 오답(400) 메시지는 폰으로 확인할 것.
 
 # 알려진 제약 / TODO
 - 잠금 정답 시도 횟수 제한 없음 — 링크를 가진 사람은 짧은 정답을 대입해볼 수 있음 (`ShareController`의 `shortcut:` 주석).
